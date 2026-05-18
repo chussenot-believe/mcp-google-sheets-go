@@ -1,0 +1,22 @@
+# Compiled binary
+/mcp-google-sheets-go
+*.test
+*.out
+
+# Local mise + Go caches (referenced by .gitlab-ci.yml)
+/.mise/
+/.mise-cache/
+/.gopath/
+/.gocache/
+
+# Credential material — never commit
+/token.json
+/credentials.json
+/service_account.json
+*.pem
+*.p12
+
+# IDE / OS noise
+.idea/
+.vscode/
+.DS_Store

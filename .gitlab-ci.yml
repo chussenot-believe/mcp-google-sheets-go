@@ -1,0 +1,49 @@
+stages:
+  - check
+  - package
+
+variables:
+  # Keep mise data + Go caches inside the project dir so GitLab CI caching works.
+  MISE_DATA_DIR: "$CI_PROJECT_DIR/.mise"
+  MISE_CACHE_DIR: "$CI_PROJECT_DIR/.mise-cache"
+  GOPATH: "$CI_PROJECT_DIR/.gopath"
+  GOCACHE: "$CI_PROJECT_DIR/.gocache"
+  GOFLAGS: "-mod=readonly"
+
+.mise:
+  image: debian:bookworm-slim
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y -qq --no-install-recommends curl git ca-certificates
+    - curl -fsSL https://mise.run | sh
+    - export PATH="$HOME/.local/bin:$PATH"
+    - mise trust
+    - mise install
+    - eval "$(mise env -s bash)"
+  cache:
+    key:
+      files:
+        - mise.toml
+        - go.sum
+    paths:
+      - .mise/
+      - .mise-cache/
+      - .gopath/pkg/mod/
+      - .gocache/
+
+ci:
+  extends: .mise
+  stage: check
+  script:
+    - mise run ci
+
+docker:
+  stage: package
+  image: docker:27
+  services:
+    - docker:27-dind
+  script:
+    - docker build -t mcp-google-sheets-go:$CI_COMMIT_SHORT_SHA .
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

@@ -1,0 +1,37 @@
+[tools]
+go = "1.23"
+
+[tasks.fmt-check]
+description = "Fail if any Go file is not gofmt'd"
+run = """
+out=$(gofmt -l .)
+if [ -n "$out" ]; then
+  echo "These files are not gofmt'd:"
+  echo "$out"
+  exit 1
+fi
+"""
+
+[tasks.fmt]
+description = "Format Go sources in place"
+run = "gofmt -w ."
+
+[tasks.vet]
+description = "go vet ./..."
+run = "go vet ./..."
+
+[tasks.build]
+description = "go build ./..."
+run = "go build -v ./..."
+
+[tasks.test]
+description = "go test (race) ./..."
+run = "go test -race -count=1 ./..."
+
+[tasks.tidy]
+description = "go mod tidy"
+run = "go mod tidy"
+
+[tasks.ci]
+description = "All CI checks: fmt-check, vet, build, test"
+depends = ["fmt-check", "vet", "build", "test"]
